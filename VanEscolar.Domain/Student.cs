@@ -7,9 +7,11 @@ namespace VanEscolar.Domain
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public int Age { get; set; }
         public DateTime StartScholl { get; set; }
         public DateTime EndScholl { get; set; }
-        public int ParentId { get; set; }
-        public int SchollId { get; set; }
+        public Parent Parent { get; set; }
+        public Scholl Scholl { get; set; }
+        public Travel Travel { get; set; }
     }
 }

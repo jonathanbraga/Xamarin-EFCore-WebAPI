@@ -12,9 +12,10 @@ using VanEscolar.Domain;
 namespace VanEscolar.Data.Migrations
 {
     [DbContext(typeof(VanEscolarContext))]
-    partial class VanEscolarContextModelSnapshot : ModelSnapshot
+    [Migration("20171223014257_init")]
+    partial class init
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
