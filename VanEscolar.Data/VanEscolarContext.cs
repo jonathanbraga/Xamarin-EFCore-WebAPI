@@ -37,9 +37,6 @@ namespace VanEscolar.Data
 
             // Link
             modelBuilder.Entity<Link>()
-                .HasOne(l => l.Parent)
-                .WithOne(p => p.Link);
-            modelBuilder.Entity<Link>()
                 .HasOne(l => l.User)
                 .WithOne(u => u.Link);
         }

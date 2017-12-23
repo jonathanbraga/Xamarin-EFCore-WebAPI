@@ -18,7 +18,10 @@ namespace CoreUI
                 Name = "Jonathan Braga",
                 Authorize = true,
                 CreatedAt = DateTime.UtcNow,
-                Link = new Link { Role = Role.Manage},
+                Link = new Link
+                {
+                    Role = Role.Manage                    
+                },
                 Email = "jonathanb2br@gmail.com",
                 Password = "#Braga123",
                 Phone = "96109343"

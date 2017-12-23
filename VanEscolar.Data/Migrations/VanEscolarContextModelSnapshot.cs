@@ -18,7 +18,7 @@ namespace VanEscolar.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "2.0.0-rtm-26452")
+                .HasAnnotation("ProductVersion", "2.0.1-rtm-125")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
             modelBuilder.Entity("VanEscolar.Domain.Link", b =>
@@ -26,17 +26,11 @@ namespace VanEscolar.Data.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<Guid?>("ParentId");
-
                     b.Property<int>("Role");
 
                     b.Property<Guid?>("UserId");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ParentId")
-                        .IsUnique()
-                        .HasFilter("[ParentId] IS NOT NULL");
 
                     b.HasIndex("UserId")
                         .IsUnique()
@@ -56,6 +50,8 @@ namespace VanEscolar.Data.Migrations
 
                     b.Property<string>("Email");
 
+                    b.Property<Guid?>("LinkId");
+
                     b.Property<string>("Neighborhood");
 
                     b.Property<int>("Number");
@@ -63,6 +59,8 @@ namespace VanEscolar.Data.Migrations
                     b.Property<string>("Street");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LinkId");
 
                     b.ToTable("Parents");
                 });
@@ -161,13 +159,16 @@ namespace VanEscolar.Data.Migrations
 
             modelBuilder.Entity("VanEscolar.Domain.Link", b =>
                 {
-                    b.HasOne("VanEscolar.Domain.Parent", "Parent")
-                        .WithOne("Link")
-                        .HasForeignKey("VanEscolar.Domain.Link", "ParentId");
-
                     b.HasOne("VanEscolar.Domain.User", "User")
                         .WithOne("Link")
                         .HasForeignKey("VanEscolar.Domain.Link", "UserId");
+                });
+
+            modelBuilder.Entity("VanEscolar.Domain.Parent", b =>
+                {
+                    b.HasOne("VanEscolar.Domain.Link", "Link")
+                        .WithMany()
+                        .HasForeignKey("LinkId");
                 });
 
             modelBuilder.Entity("VanEscolar.Domain.Student", b =>
