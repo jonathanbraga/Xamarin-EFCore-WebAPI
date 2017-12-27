@@ -1,18 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace VanEscolar.Domain
 {
     public class Link
     {
         public Guid Id { get; set; }
-        public User User { get; set; }
-        public Role Role { get; set; }
-    }
-
-    public enum Role
-    {
-        Manage = 40,
-        Parente = 45,
-        Student = 50
+        public ApplicationUser User { get; set; }
+        public Parent Parent { get; set; }
     }
 }

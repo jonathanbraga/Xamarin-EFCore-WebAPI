@@ -6,6 +6,7 @@ namespace VanEscolar.Domain
     public class Scholl
     {
         public Guid Id { get; set; }
+        public DateTime CreatedAt { get; set; }
         public string Name { get; set; }
         public string Phone { get; set; }
         public string Neighborhood { get; set; }

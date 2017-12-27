@@ -14,8 +14,13 @@ namespace VanEscolar.Domain
 
     public enum TravelStatus
     {
+        //Aluno na escola
         AtScholl = 70,
+        //Aluno em casa
         AtHome  = 75,
-        Trasnporting = 80
+        //Aluno em transporte
+        Trasnporting = 80,
+        //Van a caminho
+        IsComing = 85
     }
 }

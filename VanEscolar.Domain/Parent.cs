@@ -6,6 +6,7 @@ namespace VanEscolar.Domain
     public class Parent
     {
         public Guid Id { get; set; }
+        public DateTime CreatedAt { get; set; }
         public string Neighborhood { get; set; }
         public string Street { get; set; }
         public int Number { get; set; }
