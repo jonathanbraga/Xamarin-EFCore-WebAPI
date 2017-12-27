@@ -47,7 +47,7 @@ namespace VanEscolar.Api.Controllers
             return Ok(model);
         }
 
-        [Route("SignUp")]
+        [Route("signup")]
         [HttpPost]
         public async Task<IActionResult> SignUp([FromBody] ApplicationUser user)
         {

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using VanEscolar.Data;
 using VanEscolar.Domain;
 
@@ -20,7 +19,7 @@ namespace VanEscolar.Api.Controllers
             _context = context;
         }
 
-        [Route("account/{userID:guid}/createparent")]
+        [Route("createparent/{userID:guid}")]
         [HttpPost]
         public IActionResult CreateParent(Guid userID, [FromBody] Parent parent)
         {
@@ -30,7 +29,7 @@ namespace VanEscolar.Api.Controllers
                 return NotFound();
 
             if (_context.Parents.Any(p => p.Email.Equals(parent.Email, StringComparison.CurrentCultureIgnoreCase)))
-                return BadRequest("Email já existe");
+                return BadRequest("Existe uma conta com esse e-mail");
 
             _context.Parents.Add(parent);
             link.Parent = parent;
@@ -52,6 +51,51 @@ namespace VanEscolar.Api.Controllers
                 return NotFound();
 
             return Ok(parent);
+        }
+        
+
+        [Route("students/{parentID:guid}")]
+        [HttpGet]
+        public IActionResult GetStudents(Guid parentID)
+        {
+            var parent = _context.Parents.FirstOrDefault(p => p.Id == parentID);
+
+            if (parent == null)
+                return NotFound();
+
+            return Ok(parent.Students);
+        }
+
+        [Route("edit/{parentID:guid}")]
+        [HttpPut]
+        public IActionResult EditParent(Guid parentID, [FromBody] Parent parent)
+        {
+            var currentParent = _context.Parents.FirstOrDefault(p => p.Id == parentID);
+
+            if (currentParent == null)
+                return NotFound();
+
+            currentParent = parent;
+            _context.Parents.Update(currentParent);
+            var result = _context.SaveChanges();
+
+            if (result == 0)
+                return BadRequest();
+            return Ok();
+
+        }
+
+        //MANAGE
+        [Route("all")]
+        [HttpGet]
+        public IActionResult GetParents()
+        {
+            List<Parent> parents = _context.Parents.ToList();
+
+            if (parents == null || parents.Count < 0)
+                return NotFound();
+
+            return Ok(parents);
         }
     }
 
