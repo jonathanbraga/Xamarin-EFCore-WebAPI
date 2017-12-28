@@ -7,7 +7,7 @@ namespace VanEscolar.Domain
 {
     public class ApplicationUser : IdentityUser
     {
-        public string Name { get; set; }
+        public string Password { get; set; }
         public bool IsAtuhorize { get; set; }
         public Link Link { get; set; }
     }

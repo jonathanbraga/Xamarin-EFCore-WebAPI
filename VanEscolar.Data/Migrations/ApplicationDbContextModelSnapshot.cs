@@ -156,6 +156,8 @@ namespace VanEscolar.Data.Migrations
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256);
 
+                    b.Property<string>("Password");
+
                     b.Property<string>("PasswordHash");
 
                     b.Property<string>("PhoneNumber");
@@ -228,7 +230,7 @@ namespace VanEscolar.Data.Migrations
                     b.ToTable("Parents");
                 });
 
-            modelBuilder.Entity("VanEscolar.Domain.Scholl", b =>
+            modelBuilder.Entity("VanEscolar.Domain.School", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
@@ -251,12 +253,12 @@ namespace VanEscolar.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Scholls");
+                    b.ToTable("Schools");
                 });
 
             modelBuilder.Entity("VanEscolar.Domain.Student", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
                     b.Property<int>("Age");
@@ -269,7 +271,7 @@ namespace VanEscolar.Data.Migrations
 
                     b.Property<Guid?>("ParentId");
 
-                    b.Property<Guid?>("SchollId");
+                    b.Property<Guid?>("SchoolId");
 
                     b.Property<DateTime>("StartScholl");
 
@@ -279,7 +281,7 @@ namespace VanEscolar.Data.Migrations
 
                     b.HasIndex("ParentId");
 
-                    b.HasIndex("SchollId");
+                    b.HasIndex("SchoolId");
 
                     b.HasIndex("TravelId")
                         .IsUnique()
@@ -364,9 +366,9 @@ namespace VanEscolar.Data.Migrations
                         .WithMany("Students")
                         .HasForeignKey("ParentId");
 
-                    b.HasOne("VanEscolar.Domain.Scholl", "Scholl")
+                    b.HasOne("VanEscolar.Domain.School", "School")
                         .WithMany("Students")
-                        .HasForeignKey("SchollId");
+                        .HasForeignKey("SchoolId");
 
                     b.HasOne("VanEscolar.Domain.Travel", "Travel")
                         .WithOne("Student")

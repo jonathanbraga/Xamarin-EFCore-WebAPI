@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace VanEscolar.Data.Migrations
 {
-    public partial class CreateAuth : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -31,7 +31,7 @@ namespace VanEscolar.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Scholls",
+                name: "Schools",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
@@ -46,7 +46,7 @@ namespace VanEscolar.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Scholls", x => x.Id);
+                    table.PrimaryKey("PK_Schools", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -92,6 +92,7 @@ namespace VanEscolar.Data.Migrations
                     LockoutEnd = table.Column<DateTimeOffset>(nullable: true),
                     NormalizedEmail = table.Column<string>(maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(maxLength: 256, nullable: true),
+                    Password = table.Column<string>(nullable: true),
                     PasswordHash = table.Column<string>(nullable: true),
                     PhoneNumber = table.Column<string>(nullable: true),
                     PhoneNumberConfirmed = table.Column<bool>(nullable: false),
@@ -108,14 +109,13 @@ namespace VanEscolar.Data.Migrations
                 name: "Students",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    Id = table.Column<Guid>(nullable: false),
                     Age = table.Column<int>(nullable: false),
                     CreatedAt = table.Column<DateTime>(nullable: false),
                     EndScholl = table.Column<DateTime>(nullable: false),
                     Name = table.Column<string>(nullable: true),
                     ParentId = table.Column<Guid>(nullable: true),
-                    SchollId = table.Column<Guid>(nullable: true),
+                    SchoolId = table.Column<Guid>(nullable: true),
                     StartScholl = table.Column<DateTime>(nullable: false),
                     TravelId = table.Column<Guid>(nullable: true)
                 },
@@ -129,9 +129,9 @@ namespace VanEscolar.Data.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Students_Scholls_SchollId",
-                        column: x => x.SchollId,
-                        principalTable: "Scholls",
+                        name: "FK_Students_Schools_SchoolId",
+                        column: x => x.SchoolId,
+                        principalTable: "Schools",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -305,9 +305,9 @@ namespace VanEscolar.Data.Migrations
                 column: "ParentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Students_SchollId",
+                name: "IX_Students_SchoolId",
                 table: "Students",
-                column: "SchollId");
+                column: "SchoolId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Students_TravelId",
@@ -395,7 +395,7 @@ namespace VanEscolar.Data.Migrations
                 name: "Parents");
 
             migrationBuilder.DropTable(
-                name: "Scholls");
+                name: "Schools");
 
             migrationBuilder.DropTable(
                 name: "Travels");

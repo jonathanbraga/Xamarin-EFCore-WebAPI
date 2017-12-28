@@ -6,6 +6,7 @@ using VanEscolar.Constants;
 using VanEscolar.Data;
 using VanEscolar.Domain;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace VanEscolar.Api.Controllers
 {
@@ -16,21 +17,25 @@ namespace VanEscolar.Api.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly ILogger _logger;
 
         public AccountController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager)
+            SignInManager<ApplicationUser> signInManager,
+            ILogger<AccountController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
+            _logger = logger;
         }
 
         [Route("Me")]
         [HttpGet]
         public IActionResult Me()
         {
+            //configurar para ser o email no lugar do nome
             var email = User.Identity.Name;
             var user = _context.Users.FirstOrDefault(u => u.Email.Equals(email, StringComparison.CurrentCultureIgnoreCase));
 
@@ -54,7 +59,7 @@ namespace VanEscolar.Api.Controllers
             if (ModelState.IsValid)
             {
                 var newUser = new ApplicationUser { UserName = user.Email, Email = user.Email, Link = new Link { User = user} };
-                var result = await _userManager.CreateAsync(newUser, user.PasswordHash);
+                var result = await _userManager.CreateAsync(newUser, user.Password);
 
                 if (result.Succeeded)
                 {
@@ -68,9 +73,23 @@ namespace VanEscolar.Api.Controllers
                 return BadRequest(ModelState);
         }
 
-        public IActionResult SignIn()
+        [Route("auth/login")]
+        public async Task<IActionResult> SignIn([FromBody]ApplicationUser user)
         {
-            return null;
+            try
+            {
+                var result = await _signInManager.PasswordSignInAsync(user.UserName, user.Password, false, false);
+
+                if (result.Succeeded)
+                    return Ok();
+            }
+
+            catch (Exception ex)
+            {
+                _logger.LogError($"Exception thrown while logging in {ex}");
+            }
+
+            return BadRequest("Faled to login");
         }
 
         public IActionResult SignOut()

@@ -1,13 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using VanEscolar.Constants;
 using VanEscolar.Data;
 using VanEscolar.Domain;
 
 namespace VanEscolar.Api.Controllers
 {
+    
     [Route("api/[controller]")]
     [Produces("application/json")]
     public class StudentController : Controller

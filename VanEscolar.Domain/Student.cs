@@ -12,7 +12,7 @@ namespace VanEscolar.Domain
         public DateTime StartScholl { get; set; }
         public DateTime EndScholl { get; set; }
         public Parent Parent { get; set; }
-        public Scholl Scholl { get; set; }
+        public School School { get; set; }
         public Travel Travel { get; set; }
     }
 }

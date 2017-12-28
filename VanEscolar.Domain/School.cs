@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace VanEscolar.Domain
 {
-    public class Scholl
+    public class School
     {
         public Guid Id { get; set; }
         public DateTime CreatedAt { get; set; }

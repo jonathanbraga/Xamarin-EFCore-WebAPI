@@ -34,32 +34,35 @@ namespace VanEscolar.Api
                 .AddDefaultTokenProviders();
 
             services.AddMvc();
+
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            //var result = DatabaseMigration.MigrateDatabaseToLatestVersionAsync(app.ApplicationServices).Result;
 
-            var result = DatabaseMigration.MigrateDatabaseToLatestVersionAsync(app.ApplicationServices).Result;
-            if (!result.IsSuccess)
-            {
-                app.Run(async context =>
-                {
-                    await context.Response.WriteAsync($"Migrations have failed.\nMessage: {result.Message}");
-                });
-            }
+            //if (!result.IsSuccess)
+            //{
+            //    app.Run(async context =>
+            //    {
+            //        await context.Response.WriteAsync($"Migrations have failed.\nMessage: {result.Message}");
+            //    });
+            //}
 
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+            //if (env.IsDevelopment())
+            //{
+            //    app.UseDeveloperExceptionPage();
+            //}
 
-            app.UseMvc(Configuration =>
-            {
-                Configuration.MapRoute("MainApiRoute", "api/{controller}/{action}");
-            });
+            //app.UseMvc(Configuration =>
+            //{
+            //    Configuration.MapRoute("MainApiRoute", "api/{controller}/{action}");
+            //});
 
-            app.UseAuthentication();
+            //app.UseIdentity();
+            //app.UseAuthentication();
         }
     }
 

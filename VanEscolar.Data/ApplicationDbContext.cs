@@ -12,7 +12,7 @@ namespace VanEscolar.Data
     {
         public DbSet<Parent> Parents { get; set; }
         public DbSet<Student> Students { get; set; }
-        public DbSet<Scholl> Scholls { get; set; }
+        public DbSet<School> Schools { get; set; }
         public DbSet<Travel> Travels { get; set; }
         public DbSet<Link> Links { get; set; }
 
@@ -55,13 +55,11 @@ namespace VanEscolar.Data
              });
 
             //Scholl
-            modelBuilder.Entity<Scholl>(builder => 
+            modelBuilder.Entity<School>(builder => 
             {
             
                 builder.HasMany(c => c.Students)
-                .WithOne(s => s.Scholl);
-
-                builder.Property(p => p.CreatedAt).HasDefaultValue<DateTime>(DateTime.UtcNow);
+                .WithOne(s => s.School);
             });
             //Travel
             modelBuilder.Entity<Travel>()
