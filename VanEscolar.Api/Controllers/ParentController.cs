@@ -28,6 +28,8 @@ namespace VanEscolar.Api.Controllers
             if (link == null)
                 return NotFound();
 
+            var a = User.HasClaim("Parent", "True");
+
             if (_context.Parents.Any(p => p.Email.Equals(parent.Email, StringComparison.CurrentCultureIgnoreCase)))
                 return BadRequest("Existe uma conta com esse e-mail");
 

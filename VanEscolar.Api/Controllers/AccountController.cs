@@ -7,6 +7,10 @@ using VanEscolar.Data;
 using VanEscolar.Domain;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace VanEscolar.Api.Controllers
 {
@@ -17,18 +21,21 @@ namespace VanEscolar.Api.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IPasswordHasher<ApplicationUser> _hasher;
         private readonly ILogger _logger;
 
         public AccountController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            ILogger<AccountController> logger)
+            ILogger<AccountController> logger,
+            IPasswordHasher<ApplicationUser> hasher)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
             _logger = logger;
+            _hasher = hasher;
         }
 
         [Route("Me")]
@@ -59,26 +66,32 @@ namespace VanEscolar.Api.Controllers
             if (ModelState.IsValid)
             {
                 var newUser = new ApplicationUser { UserName = user.Email, Email = user.Email, Link = new Link { User = user} };
+                _userManager.PasswordHasher = _hasher;
                 var result = await _userManager.CreateAsync(newUser, user.Password);
 
                 if (result.Succeeded)
                 {
                     var roleresult = await _userManager.AddToRoleAsync(newUser, Roles.Parent);
-                    return Ok();
+                    await _userManager.AddClaimAsync(newUser, new Claim(ClaimTypes.Role ,"Parent"));
+                    if (roleresult.Succeeded)
+                        return Ok();
+
+                    return BadRequest(roleresult.Errors);
                 }
                 else
-                    return BadRequest(result);
+                    return BadRequest(result.Errors);
             }
             else
                 return BadRequest(ModelState);
         }
 
         [Route("auth/login")]
+        [HttpPost]
         public async Task<IActionResult> SignIn([FromBody]ApplicationUser user)
         {
             try
             {
-                var result = await _signInManager.PasswordSignInAsync(user.UserName, user.Password, false, false);
+                var result = await _signInManager.PasswordSignInAsync(user.Email, user.Password, false, false);
 
                 if (result.Succeeded)
                     return Ok();
@@ -91,6 +104,53 @@ namespace VanEscolar.Api.Controllers
 
             return BadRequest("Faled to login");
         }
+
+        [Route("auth/token")]
+        [HttpPost]
+        public async Task<IActionResult> CreateToken([FromBody] ApplicationUser user)
+        {
+            try
+            {
+                var currentUser = await _userManager.FindByEmailAsync(user.Email);
+
+                if (currentUser != null)
+                {
+                    if(_hasher.VerifyHashedPassword(currentUser, currentUser.PasswordHash, user.Password) == PasswordVerificationResult.Success)
+                    {
+                        var claims = _context.UserClaims.Where(u => u.UserId == currentUser.Id)
+                            .Select(c => new Claim(c.ClaimType, c.ClaimValue)).ToList();
+                        claims.Add(new Claim(JwtRegisteredClaimNames.Sub, currentUser.Id));
+                        claims.Add(new Claim(JwtRegisteredClaimNames.Email, currentUser.Email));
+
+                        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("314159265358979323846264338327"));
+                        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+                        var token = new JwtSecurityToken(
+                            issuer: "https://jonathanbraga.com.br",
+                            audience: "https://jonathanbraga.com.br",
+                            claims: claims,
+                            expires: DateTime.UtcNow.AddYears(1),
+                            signingCredentials: creds
+                        );
+
+                        return Ok(new
+                        {
+                            token = new JwtSecurityTokenHandler().WriteToken(token),
+                            exepiration = token.ValidTo
+                     
+                        });
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Exception thrown while creating JWT: {ex}");
+            }
+
+            return BadRequest();
+        }
+
 
         public IActionResult SignOut()
         {

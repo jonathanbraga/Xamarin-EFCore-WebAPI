@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -16,30 +17,39 @@ namespace VanEscolar.Api.Controllers
     public class StudentController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public StudentController(ApplicationDbContext context)
+        public StudentController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
+        
         [Route("createstudent/{parentID:guid}")]
         [HttpPost]
-        public IActionResult CreateStudent(Guid parentID, [FromBody] Student student)
+        public async Task<IActionResult> CreateStudent(Guid parentID, [FromBody] Student student)
         {
-            var parent = _context.Parents.FirstOrDefault(p => p.Id == parentID);
+            var currentUser = await _userManager.FindByNameAsync(this.User.Identity.Name);
+            if (currentUser != null)
+            {
+                var parent = _context.Parents.FirstOrDefault(p => p.Link.User.Id == currentUser.Id && p.Id == parentID);
 
-            if (parent == null)
-                return NotFound();
+                if (parent == null)
+                    return NotFound();
 
-            student.Parent = parent;
-            _context.Students.Add(student);
+                student.Parent = parent;
+                _context.Students.Add(student);
 
-            var result = _context.SaveChanges();
+                var result = _context.SaveChanges();
 
-            if (result == 0)
-                return BadRequest();
+                if (result == 0)
+                    return BadRequest();
 
-            return Ok();
+                return Ok();
+            }
+
+            return Forbid();
         }
 
         [Route("edit/{studentID:guid}")]
@@ -60,7 +70,7 @@ namespace VanEscolar.Api.Controllers
             return Ok();
         }
 
-        //MANAGE
+        [Authorize(Roles = "Manager")]
         [Route("all")]
         [HttpGet]
         public IActionResult GetStudents()

@@ -30,39 +30,35 @@ namespace VanEscolar.Api
             p.UseSqlServer(Configuration.GetConnectionString("DBConnection")));
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
+                .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddMvc();
-
-            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            //var result = DatabaseMigration.MigrateDatabaseToLatestVersionAsync(app.ApplicationServices).Result;
+            var result = DatabaseMigration.MigrateDatabaseToLatestVersionAsync(app.ApplicationServices).Result;
+            
+            if (!result.IsSuccess)
+            {
+                app.Run(async context =>
+                {
+                    await context.Response.WriteAsync($"Migrations have failed.\nMessage: {result.Message}");
+                });
+            }
 
-            //if (!result.IsSuccess)
-            //{
-            //    app.Run(async context =>
-            //    {
-            //        await context.Response.WriteAsync($"Migrations have failed.\nMessage: {result.Message}");
-            //    });
-            //}
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
 
-            //if (env.IsDevelopment())
-            //{
-            //    app.UseDeveloperExceptionPage();
-            //}
+            app.UseMvc(configuration =>
+            {
+                configuration.MapRoute("MainApiRoute", "api/{controller}/{action}");
+            });
 
-            //app.UseMvc(Configuration =>
-            //{
-            //    Configuration.MapRoute("MainApiRoute", "api/{controller}/{action}");
-            //});
-
-            //app.UseIdentity();
-            //app.UseAuthentication();
+            app.UseAuthentication();
         }
     }
 
@@ -83,9 +79,9 @@ namespace VanEscolar.Api
                     }
 
                     // Seed database
-                    if (!db.Roles.Any(p => p.NormalizedName == Roles.Manager.ToUpper()))
+                    if (!db.Roles.Any(p => p.NormalizedName == Roles.Parent.ToUpper()))
                     {
-                        db.Roles.Add(new IdentityRole { Name = Roles.Manager, NormalizedName = Roles.Manager.ToUpper() });
+                        db.Roles.Add(new IdentityRole { Name = Roles.Parent, NormalizedName = Roles.Parent.ToUpper() });
                         db.SaveChanges();
                     }
 
