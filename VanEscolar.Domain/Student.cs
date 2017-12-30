@@ -14,5 +14,6 @@ namespace VanEscolar.Domain
         public Parent Parent { get; set; }
         public School School { get; set; }
         public Travel Travel { get; set; }
+        public TravelStudent TravelStudent { get; set; }
     }
 }

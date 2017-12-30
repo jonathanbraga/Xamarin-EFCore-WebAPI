@@ -12,8 +12,8 @@ namespace VanEscolar.Domain
         public int Number { get; set; }
         public string City { get; set; }
         public string Complement { get; set; }
-        public string Email { get; set; }
         public List<Student> Students { get; set; }
         public Link Link { get; set; }
+        public List<Message> Messages { get; set; }
     }
 }

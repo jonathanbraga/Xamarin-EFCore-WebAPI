@@ -152,45 +152,6 @@ namespace VanEscolar.Api.Controllers
             return BadRequest();
         }
 
-        [Authorize(Roles = "Manager")]
-        [Route("authorizeuser/{userID:guid}/{authorize:bool}")]
-        [HttpPut]
-        public IActionResult AuthorizeUser(Guid userID, bool authorize)
-        {
-            var user = _context.Users.FirstOrDefault(u => u.Id == userID.ToString());
-
-            if (user == null)
-                return NotFound("User not found");
-
-            user.IsAtuhorize = authorize;
-            _context.Users.Update(user);
-            var result = _context.SaveChanges();
-
-            if (result == 0)
-                return BadRequest();
-            return Ok();
-        }
-
-        [Authorize(Roles = "Manager")]
-        [Route("delete/{userID:guid}")]
-        [HttpDelete]
-        public IActionResult DeleteUser(Guid userID)
-        {
-            var user = _context.Users.FirstOrDefault(u => u.Id == userID.ToString());
-
-            if (user == null)
-                return NotFound("User not found");
-
-            _context.Users.Remove(user);
-            var result = _context.SaveChanges();
-
-            if (result == 0)
-                return BadRequest();
-
-            return Ok();
-        }
-
-
         public IActionResult SignOut()
         {
             return null;

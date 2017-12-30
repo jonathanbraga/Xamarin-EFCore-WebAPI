@@ -15,6 +15,8 @@ namespace VanEscolar.Data
         public DbSet<School> Schools { get; set; }
         public DbSet<Travel> Travels { get; set; }
         public DbSet<Link> Links { get; set; }
+        public DbSet<TravelStudent> TravelsStudent { get; set; }
+        public DbSet<Message> Messages { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -52,7 +54,18 @@ namespace VanEscolar.Data
             { 
                 builder.HasMany(c => c.Students)
                 .WithOne(p => p.Parent);
+
+                builder.HasMany(m => m.Messages)
+                .WithOne(p => p.Parent);
              });
+
+            // Message
+            modelBuilder.Entity<Message>(builder => 
+            {
+                builder.HasOne(p => p.Parent)
+                .WithMany(m => m.Messages);
+                
+            });
 
             //Scholl
             modelBuilder.Entity<School>(builder => 
@@ -74,6 +87,16 @@ namespace VanEscolar.Data
             modelBuilder.Entity<Link>()
                 .HasOne(u => u.User)
                 .WithOne(l => l.Link);
+
+            //TravelsStudent
+            modelBuilder.Entity<TravelStudent>(builder =>
+            {
+                builder.HasOne(s => s.Student)
+                .WithOne(ts => ts.TravelStudent);
+
+                builder.HasOne(t => t.Travel)
+                .WithOne(ts => ts.TravelStudent);
+            });
         }
     }
 }

@@ -10,6 +10,7 @@ namespace VanEscolar.Domain
         public bool NeedTravel { get; set; }
         public TravelStatus Status { get; set; }
         public Student Student { get; set; }
+        public TravelStudent TravelStudent { get; set; }
     }
 
     public enum TravelStatus

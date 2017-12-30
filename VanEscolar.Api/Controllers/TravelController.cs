@@ -35,21 +35,27 @@ namespace VanEscolar.Api.Controllers
         public IActionResult CreateTravel(Guid studenID, [FromBody] Travel travel)
         {
             var student = _context.Students.FirstOrDefault(s => s.Id == studenID);
+            var currentUser = _context.Users.FirstOrDefault(u => u.Link.Parent.Students.Contains(student));
 
-            if (student == null)
+            if (student == null || currentUser == null)
                 return NotFound("Student not found");
 
-            travel.NeedTravel = true;
-            travel.Student = student;
-            travel.Status = TravelStatus.AtHome;
+            if (currentUser.IsAtuhorize)
+            {
+                travel.NeedTravel = true;
+                travel.Student = student;
+                travel.Status = TravelStatus.AtHome;
 
-            _context.Travels.Add(travel);
-            var result = _context.SaveChanges();
+                _context.Travels.Add(travel);
+                var result = _context.SaveChanges();
 
-            if (result == 0)
-                return BadRequest();
+                if (result == 0)
+                    return BadRequest();
 
-            return Ok();
+                return Ok();
+            }
+
+            return Forbid("User not authorized");
         }
 
         
@@ -70,61 +76,6 @@ namespace VanEscolar.Api.Controllers
                 return BadRequest();
 
             return Ok();
-        }
-
-        [Authorize(Roles = "Manager")]
-        [HttpPut]
-        [Route("travelstatus/{studentID:guid}/{travelStatus:int}")]
-        public IActionResult UpdateTravelStatus(Guid studentID, int travelStatus)
-        {
-            var travel = _context.Travels.FirstOrDefault(t => t.Student.Id == studentID);
-
-            if (travel == null)
-                return NotFound();
-
-            var status = new TravelStatus();
-
-            switch (travelStatus)
-            {
-                case 70:
-                    status = TravelStatus.AtScholl;
-                    break;
-
-                case 75:
-                    status = TravelStatus.AtHome;
-                    break;
-
-                case 80:
-                    status = TravelStatus.Trasnporting;
-                    break;
-
-                case 85:
-                    status = TravelStatus.IsComing;
-                    break;
-            }
-
-
-            travel.Status = status;
-            _context.Travels.Update(travel);
-            var result = _context.SaveChanges();
-
-            if (result == 0)
-                return BadRequest();
-
-            return Ok();
-        }
-
-        [Authorize(Roles = "Manager")]
-        [HttpGet]
-        [Route("all")]
-        public IActionResult GetTravels()
-        {
-            List<Travel> travels = _context.Travels.Where(t => t.Student.Parent.Link.User.IsAtuhorize == true).ToList();
-
-            if (travels == null || travels.Count <= 0)
-                return NotFound();
-
-            return Ok(travels);
-        }
+        }        
     }
 }

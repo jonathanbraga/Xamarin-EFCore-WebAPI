@@ -83,18 +83,5 @@ namespace VanEscolar.Api.Controllers
 
             return Ok();
         }
-
-        [Authorize(Roles = "Manager")]
-        [Route("all")]
-        [HttpGet]
-        public IActionResult GetStudents()
-        {
-            List<Student> students = _context.Students.ToList();
-
-            if (students == null || students.Count <= 0)
-                return NotFound();
-
-            return Ok(students);
-        }
     }
 }
