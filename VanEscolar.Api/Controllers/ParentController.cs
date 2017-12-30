@@ -30,6 +30,8 @@ namespace VanEscolar.Api.Controllers
             if (link == null)
                 return NotFound();
 
+            parent.CreatedAt = DateTime.UtcNow;
+
             _context.Parents.Add(parent);
             link.Parent = parent;
             var result = _context.SaveChanges();
@@ -82,6 +84,24 @@ namespace VanEscolar.Api.Controllers
                 return BadRequest();
             return Ok();
 
+        }
+
+        [Route("delete/{parentID:guid}")]
+        [HttpDelete]
+        public IActionResult DeleteParent(Guid parentID)
+        {
+            var parent = _context.Parents.FirstOrDefault(p => p.Id == parentID);
+
+            if (parent == null)
+                return NotFound();
+
+            _context.Parents.Remove(parent);
+            var result = _context.SaveChanges();
+
+            if (result == 0)
+                return BadRequest();
+
+            return Ok();
         }
 
         //[Authorize(Roles = "Manage")]

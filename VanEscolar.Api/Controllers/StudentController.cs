@@ -11,7 +11,7 @@ using VanEscolar.Domain;
 
 namespace VanEscolar.Api.Controllers
 {
-    
+    [Authorize]
     [Route("api/[controller]")]
     [Produces("application/json")]
     public class StudentController : Controller
@@ -28,28 +28,24 @@ namespace VanEscolar.Api.Controllers
         
         [Route("createstudent/{parentID:guid}")]
         [HttpPost]
-        public async Task<IActionResult> CreateStudent(Guid parentID, [FromBody] Student student)
+        public IActionResult CreateStudent(Guid parentID, [FromBody] Student student)
         {
-            var currentUser = await _userManager.FindByNameAsync(this.User.Identity.Name);
-            if (currentUser != null)
-            {
-                var parent = _context.Parents.FirstOrDefault(p => p.Link.User.Id == currentUser.Id && p.Id == parentID);
+            var parent = _context.Parents.FirstOrDefault(p => p.Id == parentID);
 
-                if (parent == null)
-                    return NotFound();
+            if (parent == null)
+                return NotFound();
 
-                student.Parent = parent;
-                _context.Students.Add(student);
+            student.CreatedAt = DateTime.UtcNow;
 
-                var result = _context.SaveChanges();
+            student.Parent = parent;
+            _context.Students.Add(student);
 
-                if (result == 0)
-                    return BadRequest();
+            var result = _context.SaveChanges();
 
-                return Ok();
-            }
+            if (result == 0)
+                return BadRequest();
 
-            return Forbid();
+            return Ok();
         }
 
         [Route("edit/{studentID:guid}")]
@@ -70,7 +66,24 @@ namespace VanEscolar.Api.Controllers
             return Ok();
         }
 
-        [Authorize(Roles = "Manager")]
+        [Route("delete/{studentID:guid}")]
+        [HttpDelete]
+        public IActionResult DeleteStudent(Guid studentID)
+        {
+            var student = _context.Students.FirstOrDefault(s => s.Id == studentID);
+
+            if (student == null)
+                return NotFound();
+
+            _context.Students.Remove(student);
+            var result = _context.SaveChanges();
+
+            if (result == 0)
+                return BadRequest();
+
+            return Ok();
+        }
+
         [Route("all")]
         [HttpGet]
         public IActionResult GetStudents()

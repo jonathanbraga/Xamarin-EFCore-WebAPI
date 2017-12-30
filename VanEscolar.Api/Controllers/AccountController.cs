@@ -11,6 +11,7 @@ using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 
 namespace VanEscolar.Api.Controllers
 {
@@ -149,6 +150,44 @@ namespace VanEscolar.Api.Controllers
             }
 
             return BadRequest();
+        }
+
+        [Authorize]
+        [Route("authorizeuser/{userID:guid}/{authorize:bool}")]
+        [HttpPut]
+        public IActionResult AuthorizeUser(Guid userID, bool authorize)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Id == userID.ToString());
+
+            if (user == null)
+                return NotFound("User not found");
+
+            user.IsAtuhorize = authorize;
+            _context.Users.Update(user);
+            var result = _context.SaveChanges();
+
+            if (result == 0)
+                return BadRequest();
+            return Ok();
+        }
+
+        [Authorize]
+        [Route("delete/{userID:guid}")]
+        [HttpDelete]
+        public IActionResult DeleteUser(Guid userID)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Id == userID.ToString());
+
+            if (user == null)
+                return NotFound("User not found");
+
+            _context.Users.Remove(user);
+            var result = _context.SaveChanges();
+
+            if (result == 0)
+                return BadRequest();
+
+            return Ok();
         }
 
 
