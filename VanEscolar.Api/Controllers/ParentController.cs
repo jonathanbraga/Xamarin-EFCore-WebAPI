@@ -104,14 +104,14 @@ namespace VanEscolar.Api.Controllers
             return Ok();
         }
 
-        //[Authorize(Roles = "Manage")]
+        [Authorize(Roles = "Manager")]
         [Route("all")]
         [HttpGet]
         public IActionResult GetParents()
         {
             List<Parent> parents = _context.Parents.ToList();
 
-            if (parents == null || parents.Count < 0)
+            if (parents == null || parents.Count <= 0)
                 return NotFound();
 
             return Ok(parents);

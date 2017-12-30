@@ -152,7 +152,7 @@ namespace VanEscolar.Api.Controllers
             return BadRequest();
         }
 
-        [Authorize]
+        [Authorize(Roles = "Manager")]
         [Route("authorizeuser/{userID:guid}/{authorize:bool}")]
         [HttpPut]
         public IActionResult AuthorizeUser(Guid userID, bool authorize)
@@ -171,7 +171,7 @@ namespace VanEscolar.Api.Controllers
             return Ok();
         }
 
-        [Authorize]
+        [Authorize(Roles = "Manager")]
         [Route("delete/{userID:guid}")]
         [HttpDelete]
         public IActionResult DeleteUser(Guid userID)

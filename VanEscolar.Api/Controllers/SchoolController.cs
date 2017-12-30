@@ -31,6 +31,8 @@ namespace VanEscolar.Api.Controllers
             _logger = logger;
         }
 
+        [HttpPost]
+        [Route("createschool")]
         public async Task<IActionResult> CreateSchool([FromBody] School school)
         {
             try
@@ -53,6 +55,8 @@ namespace VanEscolar.Api.Controllers
             return BadRequest();
         }
 
+        [HttpPut]
+        [Route("editschool/{schoolID:guid}")]
         public async Task<IActionResult> EditShool(Guid schoolID)
         {
             var school = _context.Schools.FirstOrDefault(s => s.Id == schoolID);
@@ -69,6 +73,8 @@ namespace VanEscolar.Api.Controllers
             return Ok();
         }
 
+        [HttpDelete]
+        [Route("deleteschool/{schoolID:guid}")]
         public async Task<IActionResult> DeleteShool(Guid schoolID)
         {
             var school = _context.Schools.FirstOrDefault(s => s.Id == schoolID);
@@ -85,16 +91,20 @@ namespace VanEscolar.Api.Controllers
             return Ok();
         }
 
+        [HttpGet]
+        [Route("all")]
         public IActionResult GetSchools()
         {
             List<School> schools = _context.Schools.ToList();
 
-            if (schools == null || schools.Count < 0)
+            if (schools == null || schools.Count <= 0)
                 return NotFound();
 
             return Ok(schools);
         }
 
+        [HttpGet]
+        [Route("sutdentsfromschool/{schoolID:guid}")]
         public IActionResult GetStudentFromSchool(Guid schoolID)
         {
             List<Student> students = _context.Students.Where(s => s.School.Id == schoolID).ToList();
