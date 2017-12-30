@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ using VanEscolar.Domain;
 
 namespace VanEscolar.Api.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [Produces("application/json")]
     public class ParentController : Controller
@@ -27,11 +29,6 @@ namespace VanEscolar.Api.Controllers
 
             if (link == null)
                 return NotFound();
-
-            var a = User.HasClaim("Parent", "True");
-
-            if (_context.Parents.Any(p => p.Email.Equals(parent.Email, StringComparison.CurrentCultureIgnoreCase)))
-                return BadRequest("Existe uma conta com esse e-mail");
 
             _context.Parents.Add(parent);
             link.Parent = parent;
@@ -87,7 +84,7 @@ namespace VanEscolar.Api.Controllers
 
         }
 
-        //MANAGE
+        //[Authorize(Roles = "Manage")]
         [Route("all")]
         [HttpGet]
         public IActionResult GetParents()

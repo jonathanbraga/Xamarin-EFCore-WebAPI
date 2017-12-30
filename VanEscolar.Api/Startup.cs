@@ -11,6 +11,10 @@ using System.Threading.Tasks;
 using System.Linq;
 using System;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.AspNetCore.Authorization;
 
 namespace VanEscolar.Api
 {
@@ -31,6 +35,34 @@ namespace VanEscolar.Api
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            services.AddAuthorization(o =>
+           {
+               o.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
+                    .RequireAuthenticatedUser()
+                    .Build();
+           });
+
+            services.AddAuthentication(o =>
+           {
+               o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+               o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+           }).AddJwtBearer( b =>
+           {
+               b.Audience = "https://jonathanbraga.com.br";
+               b.SaveToken = true;
+               b.IncludeErrorDetails = true;
+
+               b.TokenValidationParameters = new TokenValidationParameters
+               {
+                   ValidIssuer = "https://jonathanbraga.com.br",
+                   ValidAudience = "https://jonathanbraga.com.br",
+                   ValidateIssuerSigningKey = true,
+                   IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("314159265358979323846264338327")),
+                   ValidateLifetime = true
+
+               };
+           });
 
             services.AddMvc();
         }
