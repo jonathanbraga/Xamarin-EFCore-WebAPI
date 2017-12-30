@@ -59,6 +59,21 @@ namespace VanEscolar.Data
                 .WithOne(p => p.Parent);
              });
 
+            modelBuilder.Entity<Student>(builder =>
+            {
+                builder.HasOne(p => p.Parent)
+                .WithMany(s => s.Students);
+
+                builder.HasOne(s => s.School)
+                .WithMany(st => st.Students);
+
+                builder.HasOne(t => t.Travel)
+                .WithOne(s => s.Student);
+
+                builder.HasOne(t => t.TravelStudent)
+                .WithOne(s => s.Student);
+            });
+
             // Message
             modelBuilder.Entity<Message>(builder => 
             {
@@ -74,10 +89,16 @@ namespace VanEscolar.Data
                 builder.HasMany(c => c.Students)
                 .WithOne(s => s.School);
             });
+
             //Travel
-            modelBuilder.Entity<Travel>()
-                .HasOne(t => t.Student)
+            modelBuilder.Entity<Travel>(builder =>
+            {
+                builder.HasOne(t => t.Student)
                 .WithOne(s => s.Travel);
+
+                builder.HasOne(ts => ts.TravelStudent)
+                .WithOne(t => t.Travel);
+            });
 
             //Link
             modelBuilder.Entity<Link>()
