@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ using VanEscolar.Domain;
 
 namespace VanEscolar.Api.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "_Parents")]
     [Route("api/[controller]")]
     [Produces("application/json")]
     public class ParentController : Controller
@@ -46,7 +47,11 @@ namespace VanEscolar.Api.Controllers
         [HttpGet]
         public IActionResult GetParent(Guid parentID)
         {
-            var parent = _context.Parents.FirstOrDefault(p => p.Id == parentID);
+            var parent = _context.Parents
+                .Include(p => p.Students)
+                .Include(p => p.Link)
+                .Include(p => p.Messages)
+                .FirstOrDefault(p => p.Id == parentID);
 
             if (parent == null)
                 return NotFound();

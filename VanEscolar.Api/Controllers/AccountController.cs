@@ -73,7 +73,9 @@ namespace VanEscolar.Api.Controllers
                 if (result.Succeeded)
                 {
                     var roleresult = await _userManager.AddToRoleAsync(newUser, Roles.Parent);
-                    await _userManager.AddClaimAsync(newUser, new Claim(ClaimTypes.Role ,"Parent"));
+                    await _userManager.AddClaimAsync(newUser, new Claim(ClaimTypes.Role , Roles.Parent));
+                    // Role relacionada a autenticação do usuário
+                    await _userManager.AddClaimAsync(newUser, new Claim("paid", "false"));
                     if (roleresult.Succeeded)
                         return Ok();
 
@@ -118,10 +120,15 @@ namespace VanEscolar.Api.Controllers
                 {
                     if(_hasher.VerifyHashedPassword(currentUser, currentUser.PasswordHash, user.Password) == PasswordVerificationResult.Success)
                     {
+                        var userClaims = await _userManager.GetClaimsAsync(currentUser);
+
                         var claims = _context.UserClaims.Where(u => u.UserId == currentUser.Id)
                             .Select(c => new Claim(c.ClaimType, c.ClaimValue)).ToList();
                         claims.Add(new Claim(JwtRegisteredClaimNames.Sub, currentUser.Id));
                         claims.Add(new Claim(JwtRegisteredClaimNames.Email, currentUser.Email));
+                        // Role relacionada a autenticação do usuário
+                        claims.Add(new Claim("paid", "true"));
+                        claims.Union(userClaims);
 
                         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("314159265358979323846264338327"));
                         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

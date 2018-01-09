@@ -15,6 +15,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Newtonsoft.Json.Serialization;
 
 namespace VanEscolar.Api
 {
@@ -36,35 +38,48 @@ namespace VanEscolar.Api
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-            services.AddAuthorization(o =>
-           {
-               o.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
-                    .RequireAuthenticatedUser()
-                    .Build();
-           });
-
             services.AddAuthentication(o =>
-           {
-               o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-               o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-           }).AddJwtBearer( b =>
-           {
-               b.Audience = "https://jonathanbraga.com.br";
-               b.SaveToken = true;
-               b.IncludeErrorDetails = true;
+            {
+                o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer( b =>
+            {
+                b.Audience = "https://jonathanbraga.com.br";
+                b.SaveToken = true;
+                b.IncludeErrorDetails = true;
 
-               b.TokenValidationParameters = new TokenValidationParameters
-               {
-                   ValidIssuer = "https://jonathanbraga.com.br",
-                   ValidAudience = "https://jonathanbraga.com.br",
-                   ValidateIssuerSigningKey = true,
-                   IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("314159265358979323846264338327")),
-                   ValidateLifetime = true
+                b.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidIssuer = "https://jonathanbraga.com.br",
+                    ValidAudience = "https://jonathanbraga.com.br",
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("314159265358979323846264338327")),
+                    ValidateLifetime = true
+                };
+            });
 
-               };
-           });
+            services.AddAuthorization(o =>
+            {
+                //o.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
+                //     .RequireAuthenticatedUser()
+                //     .Build();
 
-            services.AddMvc();
+                o.AddPolicy("_Parents", p => p.RequireClaim(ClaimTypes.Role, Roles.Parent)
+                .RequireClaim("paid","true")
+                .RequireAuthenticatedUser()
+                .Build());
+
+                o.AddPolicy("_Managers", p => p.RequireClaim(ClaimTypes.Role, Roles.Manager)
+               .RequireAuthenticatedUser()
+               .Build());
+            });
+
+            services.AddMvc()
+                .AddJsonOptions(options => 
+                {
+                    options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -85,12 +100,12 @@ namespace VanEscolar.Api
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseAuthentication();
+
             app.UseMvc(configuration =>
             {
                 configuration.MapRoute("MainApiRoute", "api/{controller}/{action}");
             });
-
-            app.UseAuthentication();
         }
     }
 
