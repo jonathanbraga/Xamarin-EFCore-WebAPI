@@ -22,6 +22,7 @@ namespace VanEscolar.Api
 {
     public class Startup
     {
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -111,6 +112,7 @@ namespace VanEscolar.Api
 
     public static class DatabaseMigration
     {
+
         public static async Task<MigrationsResult> MigrateDatabaseToLatestVersionAsync(IServiceProvider serviceProvider)
         {
             using (var serviceScope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
@@ -131,6 +133,13 @@ namespace VanEscolar.Api
                         db.Roles.Add(new IdentityRole { Name = Roles.Parent, NormalizedName = Roles.Parent.ToUpper() });
                         db.SaveChanges();
                     }
+
+                    if (!db.Roles.Any(p => p.NormalizedName == Roles.Manager.ToUpper()))
+                    {
+                        db.Roles.Add(new IdentityRole { Name = Roles.Manager, NormalizedName = Roles.Manager.ToUpper() });
+                        db.SaveChanges();
+                    }
+
 
                     return new MigrationsResult(true);
                 });

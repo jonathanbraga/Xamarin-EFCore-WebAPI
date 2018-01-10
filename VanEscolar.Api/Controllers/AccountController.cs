@@ -12,6 +12,7 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace VanEscolar.Api.Controllers
 {
@@ -24,19 +25,48 @@ namespace VanEscolar.Api.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IPasswordHasher<ApplicationUser> _hasher;
         private readonly ILogger _logger;
+        private readonly IServiceProvider _serviceProvider;
 
         public AccountController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             ILogger<AccountController> logger,
-            IPasswordHasher<ApplicationUser> hasher)
+            IPasswordHasher<ApplicationUser> hasher,
+            IServiceProvider serviceProvider)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
             _logger = logger;
             _hasher = hasher;
+            _serviceProvider = serviceProvider;
+
+
+            //Popular com o Manager User
+            var db = _serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider.GetService<ApplicationDbContext>();            
+            if(db.UserClaims.FirstOrDefault(uc => uc.ClaimType == ClaimTypes.Role && uc.ClaimValue == Roles.Manager) == null)
+            {
+                ApplicationUser user = new ApplicationUser { Email = "osmildobraga@yahoo.com", UserName = "osmildobraga@yahoo.com", Name = "Osmildo Braga", Password = "#Vida123",
+                CreateAt = DateTime.UtcNow.ToLocalTime(), IsAtuhorize = true, EmailConfirmed = true};
+
+                _userManager.PasswordHasher = _hasher;
+                var result = _userManager.CreateAsync(user, user.Password).Result;
+
+                if(result.Succeeded)
+                {
+                    try
+                    {
+                        var roleResult = _userManager.AddToRoleAsync(user, Roles.Manager);
+                        _userManager.AddClaimAsync(user, new Claim(ClaimTypes.Role, Roles.Manager));
+                    }
+                    catch (Exception ex)
+                    {
+
+                        _logger.LogError($"Exception thrown while creating Manager: {ex}");
+                    }                    
+                }
+            }
         }
 
         [Authorize]
@@ -54,8 +84,9 @@ namespace VanEscolar.Api.Controllers
             var model = new
             {
                 user.Id,
-                Name = user.UserName,
-                user.Email
+                user.UserName,
+                user.Email,
+                user.Name
             };
 
             return Ok(model);
@@ -67,7 +98,7 @@ namespace VanEscolar.Api.Controllers
         {
             if (ModelState.IsValid)
             {
-                var newUser = new ApplicationUser { UserName = user.Email, Email = user.Email, CreateAt = DateTime.UtcNow.ToLocalTime() ,Link = new Link { User = user} };
+                var newUser = new ApplicationUser { Name = user.Name, UserName = user.Email, Email = user.Email, CreateAt = DateTime.UtcNow.ToLocalTime() ,Link = new Link { User = user} };
                 _userManager.PasswordHasher = _hasher;
                 var result = await _userManager.CreateAsync(newUser, user.Password);
 
@@ -87,26 +118,6 @@ namespace VanEscolar.Api.Controllers
             }
             else
                 return BadRequest(ModelState);
-        }
-
-        [Route("auth/login")]
-        [HttpPost]
-        public async Task<IActionResult> SignIn([FromBody]ApplicationUser user)
-        {
-            try
-            {
-                var result = await _signInManager.PasswordSignInAsync(user.Email, user.Password, false, false);
-
-                if (result.Succeeded)
-                    return Ok();
-            }
-
-            catch (Exception ex)
-            {
-                _logger.LogError($"Exception thrown while logging in {ex}");
-            }
-
-            return BadRequest("Faled to login");
         }
 
         [Route("auth/token")]

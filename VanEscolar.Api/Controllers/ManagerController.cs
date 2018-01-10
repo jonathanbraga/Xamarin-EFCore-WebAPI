@@ -13,7 +13,7 @@ using VanEscolar.Domain;
 
 namespace VanEscolar.Api.Controllers
 {
-    [Authorize(Policy = "_Manager")]
+    [Authorize(Policy = "_Managers")]
     [Route("api/[controller]")]
     [Produces("application/json")]
     public class ManagerController : Controller
