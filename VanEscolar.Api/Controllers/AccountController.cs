@@ -39,15 +39,16 @@ namespace VanEscolar.Api.Controllers
             _hasher = hasher;
         }
 
+        [Authorize]
         [Route("Me")]
         [HttpGet]
         public IActionResult Me()
         {
             //configurar para ser o email no lugar do nome
-            var email = User.Identity.Name;
+            var email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email).Value;
             var user = _context.Users.FirstOrDefault(u => u.Email.Equals(email, StringComparison.CurrentCultureIgnoreCase));
 
-            if(user == null)
+            if (user == null)
                 return NotFound();
 
             var model = new
@@ -66,7 +67,7 @@ namespace VanEscolar.Api.Controllers
         {
             if (ModelState.IsValid)
             {
-                var newUser = new ApplicationUser { UserName = user.Email, Email = user.Email, Link = new Link { User = user} };
+                var newUser = new ApplicationUser { UserName = user.Email, Email = user.Email, CreateAt = DateTime.UtcNow.ToLocalTime() ,Link = new Link { User = user} };
                 _userManager.PasswordHasher = _hasher;
                 var result = await _userManager.CreateAsync(newUser, user.Password);
 
@@ -126,8 +127,7 @@ namespace VanEscolar.Api.Controllers
                             .Select(c => new Claim(c.ClaimType, c.ClaimValue)).ToList();
                         claims.Add(new Claim(JwtRegisteredClaimNames.Sub, currentUser.Id));
                         claims.Add(new Claim(JwtRegisteredClaimNames.Email, currentUser.Email));
-                        // Role relacionada a autenticação do usuário
-                        claims.Add(new Claim("paid", "true"));
+                        //claims.Add(new Claim("email", user.Email.ToLower()));
                         claims.Union(userClaims);
 
                         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("314159265358979323846264338327"));
@@ -144,7 +144,7 @@ namespace VanEscolar.Api.Controllers
                         return Ok(new
                         {
                             token = new JwtSecurityTokenHandler().WriteToken(token),
-                            exepiration = token.ValidTo
+                            exepiration = token.ValidTo.ToLocalTime()
                      
                         });
                     }

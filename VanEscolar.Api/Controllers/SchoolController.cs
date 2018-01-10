@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -107,7 +108,9 @@ namespace VanEscolar.Api.Controllers
         [Route("sutdentsfromschool/{schoolID:guid}")]
         public IActionResult GetStudentFromSchool(Guid schoolID)
         {
-            List<Student> students = _context.Students.Where(s => s.School.Id == schoolID).ToList();
+            List<Student> students = _context.Students
+                .Include(s => s.Parent)
+                .Where(s => s.School.Id == schoolID).ToList();
 
             if (students == null || students.Count < 0)
                 return NotFound();

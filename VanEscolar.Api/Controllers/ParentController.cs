@@ -31,7 +31,7 @@ namespace VanEscolar.Api.Controllers
             if (link == null)
                 return NotFound();
 
-            parent.CreatedAt = DateTime.UtcNow;
+            parent.CreatedAt = DateTime.UtcNow.ToLocalTime();
 
             _context.Parents.Add(parent);
             link.Parent = parent;
@@ -64,12 +64,17 @@ namespace VanEscolar.Api.Controllers
         [HttpGet]
         public IActionResult GetStudents(Guid parentID)
         {
-            var parent = _context.Parents.FirstOrDefault(p => p.Id == parentID);
+            var students = _context.Students
+                .Include(s => s.Parent)
+                .Include(s => s.School)
+                .Include(s => s.Travel)
+                .Include(s => s.TravelStudent)
+                .Where(s => s.Parent.Id == parentID);
 
-            if (parent == null)
+            if (students == null)
                 return NotFound();
 
-            return Ok(parent.Students);
+            return Ok(students);
         }
 
         [Route("edit/{parentID:guid}")]
@@ -96,10 +101,12 @@ namespace VanEscolar.Api.Controllers
         public IActionResult DeleteParent(Guid parentID)
         {
             var parent = _context.Parents.FirstOrDefault(p => p.Id == parentID);
+            var link = _context.Links.FirstOrDefault(l => l.Parent.Id == parentID);
 
-            if (parent == null)
+            if (parent == null || link == null)
                 return NotFound();
 
+            _context.Links.Remove(link);
             _context.Parents.Remove(parent);
             var result = _context.SaveChanges();
 

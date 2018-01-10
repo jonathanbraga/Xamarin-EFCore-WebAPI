@@ -11,7 +11,7 @@ using VanEscolar.Domain;
 
 namespace VanEscolar.Api.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "_Parents")]
     [Route("api/[controller]")]
     [Produces("application/json")]
     public class TravelController : Controller

@@ -1,33 +1,32 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using VanEscolar.Data;
 using VanEscolar.Domain;
 
 namespace VanEscolar.Api.Controllers
 {
-    [Authorize(Roles = "Manager")]
+    [Authorize(Policy = "_Manager")]
     [Route("api/[controller]")]
     [Produces("application/json")]
     public class ManagerController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ILogger _logger;
 
         public ManagerController(
             ApplicationDbContext context,
-            UserManager<ApplicationUser> userManager,
-            ILogger logger)
+            UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _userManager = userManager;
-            _logger = logger;
         }
 
         [HttpPut]
@@ -101,7 +100,7 @@ namespace VanEscolar.Api.Controllers
         
         [Route("account/authorizeuser/{userID:guid}/{authorize:bool}")]
         [HttpPut]
-        public IActionResult AuthorizeUser(Guid userID, bool authorize)
+        public async Task<IActionResult> AuthorizeUser(Guid userID, bool authorize)
         {
             var user = _context.Users.FirstOrDefault(u => u.Id == userID.ToString());
 
@@ -110,10 +109,13 @@ namespace VanEscolar.Api.Controllers
 
             user.IsAtuhorize = authorize;
             _context.Users.Update(user);
+            
             var result = _context.SaveChanges();
 
             if (result == 0)
                 return BadRequest();
+
+            await _userManager.AddClaimAsync(user, new Claim("paid", authorize.ToString().ToLower()));
             return Ok();
         }
         
@@ -139,7 +141,11 @@ namespace VanEscolar.Api.Controllers
         [HttpGet]
         public IActionResult GetParents()
         {
-            List<Parent> parents = _context.Parents.ToList();
+            List<Parent> parents = _context.Parents
+                .Include(p => p.Link)
+                .Include(p => p.Messages)
+                .Include(p => p.Students)
+                .ToList();
 
             if (parents == null || parents.Count <= 0)
                 return NotFound();
@@ -151,7 +157,12 @@ namespace VanEscolar.Api.Controllers
         [HttpGet]
         public IActionResult GetStudents()
         {
-            List<Student> students = _context.Students.ToList();
+            List<Student> students = _context.Students
+                .Include(s => s.Parent)
+                .Include(s => s.School)
+                .Include(s => s.Travel)
+                .Include(s => s.TravelStudent)
+                .ToList();
 
             if (students == null || students.Count <= 0)
                 return NotFound();
