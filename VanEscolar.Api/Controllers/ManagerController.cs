@@ -115,6 +115,13 @@ namespace VanEscolar.Api.Controllers
             if (result == 0)
                 return BadRequest();
 
+            var clm = await _userManager.GetClaimsAsync(user);
+            var paidClaim = clm.Where(c => c.Type == "paid");
+
+            if (paidClaim == null)
+                return NotFound("Claim note found");
+
+            await _userManager.RemoveClaimsAsync(user, paidClaim);
             await _userManager.AddClaimAsync(user, new Claim("paid", authorize.ToString().ToLower()));
             return Ok();
         }
