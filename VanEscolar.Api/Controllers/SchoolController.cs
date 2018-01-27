@@ -13,7 +13,7 @@ using VanEscolar.Domain;
 namespace VanEscolar.Api.Controllers
 {
     //Only Manager
-    [Authorize(Roles = "Manager")]
+    [Authorize(Policy = "_Managers")]
     [Route("api/[controller]")]
     [Produces("application/json")]
     public class SchoolController : Controller
@@ -25,7 +25,7 @@ namespace VanEscolar.Api.Controllers
         public SchoolController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            ILogger logger)
+            ILogger<SchoolController> logger)
         {
             _context = context;
             _userManager = userManager;
@@ -96,7 +96,8 @@ namespace VanEscolar.Api.Controllers
         [Route("all")]
         public IActionResult GetSchools()
         {
-            List<School> schools = _context.Schools.ToList();
+            List<School> schools = _context.Schools
+                .ToList();
 
             if (schools == null || schools.Count <= 0)
                 return NotFound();

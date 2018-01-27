@@ -119,7 +119,7 @@ namespace VanEscolar.Api.Controllers
             var paidClaim = clm.Where(c => c.Type == "paid");
 
             if (paidClaim == null)
-                return NotFound("Claim note found");
+                return NotFound("Claim not found");
 
             await _userManager.RemoveClaimsAsync(user, paidClaim);
             await _userManager.AddClaimAsync(user, new Claim("paid", authorize.ToString().ToLower()));

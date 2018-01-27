@@ -23,7 +23,7 @@ namespace VanEscolar.Api.Controllers
         public TravelController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            ILogger logger)
+            ILogger<TravelController> logger)
         {
             _context = context;
             _userManager = userManager;

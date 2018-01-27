@@ -35,10 +35,31 @@ namespace VanEscolar.Api.Controllers
             if (parent == null)
                 return NotFound();
 
-            student.CreatedAt = DateTime.UtcNow;
+            student.CreatedAt = DateTime.UtcNow.ToLocalTime();
 
             student.Parent = parent;
             _context.Students.Add(student);
+
+            var result = _context.SaveChanges();
+
+            if (result == 0)
+                return BadRequest();
+
+            return Ok();
+        }
+
+        [Route("givenschool/{studentID:guid}/{schoolID:guid}")]
+        [HttpPut]
+        public IActionResult GivenSchool(Guid studentID, Guid schoolID)
+        {
+            var school = _context.Schools.FirstOrDefault(p => p.Id == schoolID);
+            var student = _context.Students.FirstOrDefault(p => p.Id == studentID);
+
+            if (school == null || student == null)
+                return NotFound();
+
+            student.School = school;
+            _context.Students.Update(student);
 
             var result = _context.SaveChanges();
 
