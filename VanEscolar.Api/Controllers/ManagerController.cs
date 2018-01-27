@@ -29,55 +29,62 @@ namespace VanEscolar.Api.Controllers
             _userManager = userManager;
         }
 
-        [HttpPut]
+        [HttpPost]
         [Route("travel/travelstatus/{studentID:guid}/{travelStatus:int}")]
         public IActionResult UpdateTravelStatus(Guid studentID, int travelStatus)
-        {
-            var travel = _context.Travels.FirstOrDefault(t => t.Student.Id == studentID);
+        {            
             var student = _context.Students.FirstOrDefault(s => s.Id == studentID);
 
-            if (travel == null || student == null)
-                return NotFound();
-
-            var status = new TravelStatus();
-            TravelStudent ts = new TravelStudent();
-
-            switch (travelStatus)
+            if(student.NeedTravel)
             {
-                case 70:
-                    status = TravelStatus.AtScholl;
-                    break;
+                if (student == null)
+                    return NotFound();
 
-                case 75:
-                    status = TravelStatus.AtHome;
-                    break;
+                var status = new TravelStatus();
+                TravelStudent ts = new TravelStudent();
 
-                case 80:
-                    status = TravelStatus.Trasnporting;
-                    break;
+                switch (travelStatus)
+                {
+                    case 70:
+                        status = TravelStatus.AtScholl;
+                        CreateTravelStudentData(ts, student, status);
+                        break;
 
-                case 85:
-                    status = TravelStatus.IsComing;
-                    break;
+                    case 75:
+                        status = TravelStatus.AtHome;
+                        CreateTravelStudentData(ts, student, status);
+                        break;
+
+                    case 80:
+                        status = TravelStatus.Trasnporting;
+                        CreateTravelStudentData(ts, student, status);
+                        break;
+
+                    case 85:
+                        status = TravelStatus.IsComing;
+                        CreateTravelStudentData(ts, student, status);
+                        break;
+                }
+
+                var result = _context.SaveChanges();
+
+                if (result == 0)
+                    return BadRequest();
+
+                return Ok();
+            }
+            else
+            {
+                return NotFound("Aluno não precisa");
             }
 
-            //TODO Melhorar Criação do Historico
-            if (status == TravelStatus.IsComing)
-            {
-                ts.StartAt = DateTime.UtcNow.ToLocalTime();
-                ts.Student = student;
-                ts.Travel = travel;
-                _context.TravelsStudent.Add(ts);
-            }
-            else if (status == TravelStatus.AtScholl || status == TravelStatus.AtHome)
-            {
-                ts.FinishAt = DateTime.UtcNow.ToLocalTime();
-                _context.TravelsStudent.Update(ts);
-            }
-            // ---------------------------------
+        }
 
-            travel.Status = status;
-            _context.Travels.Update(travel);
+        [HttpPost]
+        [Route("travel/createqueue/{studentID:guid}")]
+        public IActionResult CreateQueue([FromBody] Queue queue, Guid studentID)
+        {            
+            _context.Queues.Add(queue);
             var result = _context.SaveChanges();
 
             if (result == 0)
@@ -90,7 +97,10 @@ namespace VanEscolar.Api.Controllers
         [Route("travel/all")]
         public IActionResult GetTravels()
         {
-            List<Travel> travels = _context.Travels.Where(t => t.Student.Parent.Link.User.IsAtuhorize == true).ToList();
+            List<TravelStudent> travels = _context.TravelsStudent
+                .Include(t => t.Student)
+                .Where(t => t.Student.Parent.Link.User.IsAtuhorize == true)
+                .ToList();
 
             if (travels == null || travels.Count <= 0)
                 return NotFound();
@@ -167,14 +177,23 @@ namespace VanEscolar.Api.Controllers
             List<Student> students = _context.Students
                 .Include(s => s.Parent)
                 .Include(s => s.School)
-                .Include(s => s.Travel)
-                .Include(s => s.TravelStudent)
+                .Include(s => s.TravelsStudent)
                 .ToList();
 
             if (students == null || students.Count <= 0)
                 return NotFound();
 
             return Ok(students);
+        }
+
+
+        ///Local Method
+        private void CreateTravelStudentData(TravelStudent ts, Student student, TravelStatus status)
+        {
+            ts.StartAt = DateTime.UtcNow.ToLocalTime();
+            ts.Student = student;
+            ts.Status = status;
+            _context.TravelsStudent.Add(ts);
         }
     }
 }

@@ -36,8 +36,9 @@ namespace VanEscolar.Api.Controllers
                 return NotFound();
 
             student.CreatedAt = DateTime.UtcNow.ToLocalTime();
-
             student.Parent = parent;
+            student.NeedTravel = true;
+
             _context.Students.Add(student);
 
             var result = _context.SaveChanges();

@@ -67,8 +67,7 @@ namespace VanEscolar.Api.Controllers
             var students = _context.Students
                 .Include(s => s.Parent)
                 .Include(s => s.School)
-                .Include(s => s.Travel)
-                .Include(s => s.TravelStudent)
+                .Include(s => s.TravelsStudent)
                 .Where(s => s.Parent.Id == parentID);
 
             if (students == null)
